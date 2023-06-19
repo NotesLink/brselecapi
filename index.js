@@ -3,7 +3,9 @@ const cors = require("cors"); //cross-origin requests
 const mongo = require("mongodb"); //mongodb database
 
 const app = express(); //define new express server
-app.use(cors()); //use middleware to allow cross-origin requests
+app.use(cors({
+    origin: "*"
+})); //use middleware to allow cross-origin requests
 app.use(express.json()); //use middleware to parse json body of http requests
 
 let brs = {
