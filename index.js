@@ -120,9 +120,20 @@ app.get("/clearkeys/:pass", (req, res) => {
     }
 });
 
-app.get("/getvotes/:pass", (req, res) => {
+app.get("/getvotes/", (_req, res) => {
+    client.db("edata").collection("votes").find({}).project({
+        _id: 0
+    }).toArray().then((e) => {
+        res.status(200).send(e);
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).send("internal server error");
+    });
+});
+
+app.get("/getkeys/:pass", (req, res) => {
     if (brs.connected && req.params.pass == process.env.PASS) {
-        client.db("edata").collection("votes").find({}).project({
+        client.db("edata").collection("keys").find({}).project({
             _id: 0
         }).toArray().then((e) => {
             res.status(200).send(e);
