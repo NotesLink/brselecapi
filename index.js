@@ -52,7 +52,7 @@ app.post("/vote/:key", async (req, res) => {
                     console.log(err);
                 });
             } else {
-                res.status(403).send("invalid key");
+                res.status(403).send("invalid password");
             }
         }).catch((err) => {
             console.log(err);
