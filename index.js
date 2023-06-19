@@ -22,10 +22,13 @@ const client = new mongo.MongoClient(brs.uri, {
 });
 
 function genkey() {
-    return String(
-        Date.now().toString(32) +
-        Math.random().toString(16)
-    ).replace(/\./g, "");
+    return Math.floor(
+        Math.random() *
+        Math.floor(
+            Math.random() *
+            Date.now()
+        )
+    ).toString(32);
 }
 
 //initialize database connection
@@ -46,13 +49,15 @@ app.post("/vote/:key", async (req, res) => {
             if (l.length > 0) {
                 console.log(req.body);
                 client.db("edata").collection("votes").insertOne(req.body).then(() => {
-                    client.db("edata").collection("keys").deleteOne({ key: req.params.key });
+                    client.db("edata").collection("keys").deleteOne({
+                        key: req.params.key
+                    });
                     res.status(200).send("posted successfully");
                 }).catch((err) => {
                     console.log(err);
                 });
             } else {
-                res.status(403).send("invalid password");
+                res.status(403).send("invalid passkey");
             }
         }).catch((err) => {
             console.log(err);
