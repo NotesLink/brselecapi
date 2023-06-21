@@ -151,6 +151,10 @@ app.get("/getkeys/:pass", (req, res) => {
     }
 });
 
+app.get("/ping*", (_req,res)=>{
+    res.send("pong!");
+});
+
 app.listen(brs.port, () => {
     console.log(`Example app listening on port ${brs.port}`)
 });
