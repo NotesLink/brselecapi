@@ -199,7 +199,7 @@ app.get("/resclear/:pass", (req, res) => {
 
 app.get("/res/:house", (req, res) => {
     if (!(!req.params.house)) {
-        client.db("edata").collection("votes").find({
+        client.db("edata").collection("res").find({
             house: req.params.house
         }).project({
             _id: 0
