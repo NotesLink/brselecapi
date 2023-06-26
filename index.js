@@ -9,6 +9,14 @@ app.use((_req, res, next) => {
     res.append('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
+app.use(function (_req, res, next) {
+    if (brs.connected) {
+        next();
+    }
+    else {
+        res.status(500).send("database disconnected");
+    }
+});
 app.use(express.json()); //use middleware to parse json body of http requests
 
 let brs = {
@@ -45,36 +53,32 @@ initdb = async () => {
 initdb();
 
 app.post("/vote/:key", async (req, res) => {
-    if (brs.connected) {
-        client.db("edata").collection("keys").find({
-            key: req.params.key
-        }).project({
-            _id: 0
-        }).toArray().then((l) => {
-            if (l.length > 0) {
-                console.log(req.body);
-                client.db("edata").collection("votes").insertOne(req.body).then(() => {
-                    client.db("edata").collection("keys").deleteOne({
-                        key: req.params.key
-                    });
-                    res.status(200).send("posted successfully");
-                }).catch((err) => {
-                    console.log(err);
+    client.db("edata").collection("keys").find({
+        key: req.params.key
+    }).project({
+        _id: 0
+    }).toArray().then((l) => {
+        if (l.length > 0) {
+            console.log(req.body);
+            client.db("edata").collection("votes").insertOne(req.body).then(() => {
+                client.db("edata").collection("keys").deleteOne({
+                    key: req.params.key
                 });
-            } else {
-                res.status(403).send("invalid passkey");
-            }
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).send("internal server error");
-        });
-    } else {
-        res.status(500).send("db disconnected");
-    }
+                res.status(200).send("posted successfully");
+            }).catch((err) => {
+                console.log(err);
+            });
+        } else {
+            res.status(403).send("invalid passkey");
+        }
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).send("internal server error");
+    });
 });
 
 app.get("/newkey/:pass/", (req, res) => {
-    if (brs.connected && req.params.pass == process.env.PASS) {
+    if (req.params.pass == process.env.PASS) {
         let count = req.query.n || 1;
         let i = 0;
         let arr = [];
@@ -100,7 +104,7 @@ app.get("/newkey/:pass/", (req, res) => {
 });
 
 app.get("/delkey/:pass/:key", (req, res) => {
-    if (brs.connected && req.params.pass == process.env.PASS) {
+    if (req.params.pass == process.env.PASS) {
         client.db("edata").collection("keys").deleteOne({
             key: req.params.key
         }).then(() => {
@@ -109,11 +113,13 @@ app.get("/delkey/:pass/:key", (req, res) => {
             console.log(err);
             res.status(500).send("internal server error");
         });
+    } else {
+        res.status(403).send("invalid password");
     }
 });
 
 app.get("/clearkeys/:pass", (req, res) => {
-    if (brs.connected && req.params.pass == process.env.PASS) {
+    if (req.params.pass == process.env.PASS) {
         client.db("edata").collection("keys").deleteMany({}).then(() => {
             res.status(200).send("deleted all keys");
         }).catch((err) => {
@@ -137,7 +143,7 @@ app.get("/getvotes/", (_req, res) => {
 });
 
 app.get("/getkeys/:pass", (req, res) => {
-    if (brs.connected && req.params.pass == process.env.PASS) {
+    if (req.params.pass == process.env.PASS) {
         client.db("edata").collection("keys").find({}).project({
             _id: 0
         }).toArray().then((e) => {
@@ -152,42 +158,34 @@ app.get("/getkeys/:pass", (req, res) => {
 });
 
 app.post("/resadd/:key", async (req, res) => {
-    if (brs.connected) {
-        if (req.params.key == process.env.PASS) {
-            console.log(req.body);
-            client.db("edata").collection("res").insertOne(req.body).then(() => {
-                res.status(200).send("posted successfully");
-            }).catch((err) => {
-                console.log(err);
-                res.status(500).send("internal server error");
-            });
-        } else {
-            res.status(403).send("invalid password");
-        }
+    if (req.params.key == process.env.PASS) {
+        console.log(req.body);
+        client.db("edata").collection("res").insertOne(req.body).then(() => {
+            res.status(200).send("posted successfully");
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).send("internal server error");
+        });
     } else {
-        res.status(500).send("db disconnected");
+        res.status(403).send("invalid password");
     }
 });
 
 app.post("/delkey/:pass", (req, res) => {
-    if (brs.connected) {
-        if (req.params.pass == process.env.PASS) {
-            client.db("edata").collection("res").deleteOne(req.body).then(() => {
-                res.status(200).send("deleted key");
-            }).catch((err) => {
-                console.log(err);
-                res.status(500).send("internal server error");
-            });
-        } else{
-            res.status(403).send("invalid password");
-        }
+    if (req.params.pass == process.env.PASS) {
+        client.db("edata").collection("res").deleteOne(req.body).then(() => {
+            res.status(200).send("deleted key");
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).send("internal server error");
+        });
     } else {
-        res.status(500).send("database disconnected");
+        res.status(403).send("invalid password");
     }
 });
 
 app.get("/resclear/:pass", (req, res) => {
-    if (brs.connected && req.params.pass == process.env.PASS) {
+    if (req.params.pass == process.env.PASS) {
         client.db("edata").collection("res").deleteMany({}).then(() => {
             res.status(200).send("deleted all keys");
         }).catch((err) => {
@@ -196,6 +194,23 @@ app.get("/resclear/:pass", (req, res) => {
         });
     } else {
         res.status(403).send("wrong password");
+    }
+});
+
+app.get("/res/:house", (req, res) => {
+    if (!(!req.params.house)) {
+        client.db("edata").collection("votes").find({
+            house: req.params.house
+        }).project({
+            _id: 0
+        }).toArray().then((e) => {
+            res.status(200).send(e);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).send("internal server error");
+        });
+    } else {
+        res.status(403).send("enter house");
     }
 });
 
