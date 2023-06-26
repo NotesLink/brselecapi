@@ -215,18 +215,14 @@ app.get("/res/:house", (req, res) => {
 });
 
 app.get("/list-res", (req, res) => {
-    if (!(!req.params.house)) {
-        client.db("edata").collection("res").find({}).project({
-            _id: 0
-        }).toArray().then((e) => {
-            res.status(200).send(e);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).send("internal server error");
-        });
-    } else {
-        res.status(403).send("enter house");
-    }
+    client.db("edata").collection("res").find({}).project({
+        _id: 0
+    }).toArray().then((e) => {
+        res.status(200).send(e);
+    }).catch((err) => {
+        console.log(err);
+        res.status(500).send("internal server error");
+    });
 });
 
 app.get("/ping*", (_req, res) => {
