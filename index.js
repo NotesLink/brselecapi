@@ -151,7 +151,55 @@ app.get("/getkeys/:pass", (req, res) => {
     }
 });
 
-app.get("/ping*", (_req,res)=>{
+app.post("/resadd/:key", async (req, res) => {
+    if (brs.connected) {
+        if (req.params.key == process.env.PASS) {
+            console.log(req.body);
+            client.db("edata").collection("res").insertOne(req.body).then(() => {
+                res.status(200).send("posted successfully");
+            }).catch((err) => {
+                console.log(err);
+                res.status(500).send("internal server error");
+            });
+        } else {
+            res.status(403).send("invalid password");
+        }
+    } else {
+        res.status(500).send("db disconnected");
+    }
+});
+
+app.post("/delkey/:pass", (req, res) => {
+    if (brs.connected) {
+        if (req.params.pass == process.env.PASS) {
+            client.db("edata").collection("res").deleteOne(req.body).then(() => {
+                res.status(200).send("deleted key");
+            }).catch((err) => {
+                console.log(err);
+                res.status(500).send("internal server error");
+            });
+        } else{
+            res.status(403).send("invalid password");
+        }
+    } else {
+        res.status(500).send("database disconnected");
+    }
+});
+
+app.get("/resclear/:pass", (req, res) => {
+    if (brs.connected && req.params.pass == process.env.PASS) {
+        client.db("edata").collection("res").deleteMany({}).then(() => {
+            res.status(200).send("deleted all keys");
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).send("internal server error");
+        });
+    } else {
+        res.status(403).send("wrong password");
+    }
+});
+
+app.get("/ping*", (_req, res) => {
     res.send("pong!");
 });
 
