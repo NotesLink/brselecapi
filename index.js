@@ -142,6 +142,19 @@ app.get("/getvotes/", (_req, res) => {
     });
 });
 
+app.get("/clearvotes/:pass", (req, res) => {
+    if (req.params.pass == process.env.PASS) {
+        client.db("edata").collection("votes").deleteMany({}).then(() => {
+            res.status(200).send("deleted all keys");
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).send("internal server error");
+        });
+    } else {
+        res.status(403).send("wrong password");
+    }
+});
+
 app.get("/getkeys/:pass", (req, res) => {
     if (req.params.pass == process.env.PASS) {
         client.db("edata").collection("keys").find({}).project({
