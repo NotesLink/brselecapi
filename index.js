@@ -184,10 +184,10 @@ app.post("/resadd/:key", async (req, res) => {
     }
 });
 
-app.post("/delkey/:pass", (req, res) => {
+app.post("/resdel/:pass", (req, res) => {
     if (req.params.pass == process.env.PASS) {
         client.db("edata").collection("res").deleteOne(req.body).then(() => {
-            res.status(200).send("deleted key");
+            res.status(200).send("deleted");
         }).catch((err) => {
             console.log(err);
             res.status(500).send("internal server error");
