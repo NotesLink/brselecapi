@@ -17,8 +17,7 @@ app.use(function (_req, res, next) {
         res.status(500).send("database disconnected");
     }
 });
-app.use(express.bodyParser({ limit: '20mb' }));
-app.use(express.json()); //use middleware to parse json body of http requests
+app.use(express.json({ limit: "50mb" })); //use middleware to parse json body of http requests
 
 let brs = {
     port: process.env.PORT || 8000, //http server port
